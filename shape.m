@@ -1,4 +1,4 @@
-classdef shape
+classdef shape < matlab.mixin.SetGet
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
 
@@ -13,13 +13,15 @@ classdef shape
         function obj = shape(q_vec,body)
             % Construct an instance of a shape class
             obj.q_vec = q_vec;
-            obj.body = body;
+            % obj.body = body;
+            obj.body = polyshape(body(1,:),body(2,:));
         end
 
-        function createHole(points)
-            % Create a hole in the body for drawing
-            %   Detailed explanation goes here
-            
+        function createHole(self,points)
+            % Create a hole in the body
+                % points : verteces if hole
+            newBody = addboundary(self.body,points(1,:),points(2,:));
+            set(self,'body', newBody);
         end
 
         function drawBody(self,n)
@@ -27,9 +29,11 @@ classdef shape
                 % n : index in q_vec position vector
             % rotate and translate points
             q = self.q_vec(n,:);
-            np = translateAndRotate(self.body,q);
+            pgon = rotate(self.body,rad2deg(q(3)));
+            pgon = translate(pgon,q(1:2));
             % np = self.body
-            plot(np(1,:),np(2,:))
+            % plot(np(1,:),np(2,:))
+            plot(pgon)
         end
 
         function setOptions(opts)
@@ -39,6 +43,10 @@ classdef shape
             % 'coordinate', size : draw the shape's coordinate frame at the COM
             % 'lineStyle', style : change the style of the line
 
+        end
+        % setters
+        function set.body(obj,newBody)
+            obj.body = newBody;
         end
     end
 end
