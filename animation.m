@@ -4,14 +4,20 @@ classdef animation < matlab.mixin.SetGet
 
     properties (SetAccess = private)
         shapes % array of shape objects
+        options
+        coordPos
     end
 
     methods
-        % function obj = animation()
-        %     % Constructor
-        %     %   Detailed explanation goes here
-        %     obj.shapes = inputArg1 + inputArg2;
-        % end
+        function obj = animation(coordPos)
+            % Constructor
+            arguments
+                coordPos (1,2) double = [0.0,0.0]
+            end
+            obj.coordPos = coordPos;
+            %initialize options
+            obj.options.axis = [-8.0 2 -4.0 6.0];
+        end
 
         function shapeObj = createSquare(self,q_link,size)
             % Create a square, returns a shape object 
@@ -86,6 +92,7 @@ classdef animation < matlab.mixin.SetGet
             suppObj.setStatic(true);
             
             suppObj.solidLine([-midsec/2,midsec/2;-h,-h],10,size/4)
+            suppObj.setOptions('drawFrame',false)
         end
 
         function shapeObj = createCustom(self,q_link,points)
@@ -94,18 +101,20 @@ classdef animation < matlab.mixin.SetGet
             set(self,'shapes', shapeObj);
         end
 
-        function animate(self,t_vec,varargin)
+        function animate(self,t_vec,t_pause)
             % Draw animation from shapes based on a time vector
-            if nargin < 3
-                t_pause = 0.01;
-            else
-                t_pause = varargin{1};
+            arguments
+                self 
+                t_vec 
+                t_pause double = 0.01
             end
             figure
             axis equal
             hold on
+            axis(self.options.axis)
             for n = 1:length(t_vec)
                 cla
+                drawCoordinate(self,self.coordPos',0)
                 for i = 1:length(self.shapes)
                     self.shapes(i).drawBody(n);
                 end
@@ -113,14 +122,49 @@ classdef animation < matlab.mixin.SetGet
             end
         end
 
+        function setOptions(self,fields,values)
+            % Set additional items to draw
+            % OPTIONS:
+            % 'title', string : add text to the shape drawing % todo
+            % 'frame', size : draw the shape's coordinate frame at the COM
+            % 'lineStyle', style : change the style of the line % todo
+            arguments
+                self 
+                fields (1,:) string
+                values (1,:) cell
+            end
+            if length(fields) ~= length(values)
+                error("Length of option arrays must be equal")
+            end
+            for i = 1:length(fields)
+                set(self,"options",struct(fields(i),values(i)))
+            end
+        end
+
     % setters
         function set.shapes(obj,newShape)
             obj.shapes = [obj.shapes newShape];
         end
-
+        function set.options(obj,field_val)
+            field = fieldnames(field_val);
+            val = struct2cell(field_val);
+            obj.options.(field{1}) = val{1};
+            % oldvals = obj.options;
+            % obj.options = setfield(oldvals,field{1},val{1});% setfield(oldvals,field_val{1},field_val{2});
+        end
     end
-    methods (Access = private)
-
+    
+    methods (Access=private)
+        function drawCoordinate(self,pos,rot)
+            % draw the coordinate frame of the body
+                % pos : position of the body
+                % rot : rotation of body
+            frame = TranslateAndRotate(pos,rot,...
+                                       CoordSys2D(0.8,0.2,pi/4));
+            plot(frame(1,:),frame(2,:),"Color",'b');
+            text(frame(1,2)+0.05,frame(2,2)+0.05,'x','FontSize',18)
+            text(frame(1,6)+0.05,frame(2,6)+0.05,'y','FontSize',18)
+        end
     end
 end
 
@@ -139,4 +183,30 @@ function arc = turtArc(r,phi,n)
         arc(i) = theta;
         arc(i+1) = b;
     end
+end
+
+function f = TranslateAndRotate(r, phi, body)
+% TranslateAndRotate(r, A, body)
+% r    = [x;y] position of center of mass in global coordinates
+% phi  = rotation of the body in radians
+% body = [[x;y], [x;y],....] body points in local coordinates
+b = [cos(phi), -sin(phi);sin(phi), cos(phi)]*body;
+f = [r(1,1)+b(1,:);r(2,1)+b(2,:)];
+end
+
+function M = CoordSys2D(la,lt,va)
+% CoordSys2D(la,lt,va)
+% Creates a two dimensional coordinate system
+% la  = length of arrow
+% lt  = length of arrow tip
+% va  = angle for arrow tip in radians
+M = [[la+lt*cos(pi-va),lt*sin(pi-va)]',...
+    [la,0]',...
+    [la+lt*cos(pi+va),lt*sin(pi+va)]',...
+    [la,0]',...
+    [0,0]',...
+    [0,la]',...
+    [lt*cos(3*pi/2-va),la+lt*sin(3*pi/2-va)]',...
+    [0,la]',...
+    [lt*cos(3*pi/2+va),la+lt*sin(3*pi/2+va)]'];
 end

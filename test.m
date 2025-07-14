@@ -8,6 +8,7 @@ q_vec = [0,0,0;
 t_vec = 1:length(q_vec);
 
 a = animation;
+a.setOptions('axis',{[-10.0 10 -10.0 10.0]})
 a.createSquare(q_vec,2);
 a.createSquare(q_vec+[1,0,0],1);
 circ = a.createCirc(q_vec,5,25,[0;4]);

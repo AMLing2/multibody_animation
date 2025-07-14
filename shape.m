@@ -16,6 +16,8 @@ classdef shape < matlab.mixin.SetGet
             obj.q_vec = q_vec;
             % obj.body = body;
             obj.body = polyshape(body(1,:),body(2,:));
+            % initialize options struct
+            obj.options.drawFrame = true;
         end
 
         function createHole(self,points)
@@ -75,6 +77,9 @@ classdef shape < matlab.mixin.SetGet
                 nl = TranslateAndRotate(q(1:2)',q(3)',self.lines);
                 plot(nl(1,:),nl(2,:),"Color",'black')
             end
+            if self.options.drawFrame
+                drawCoordinate(self,q(1:2)',q(3))
+            end
         end
 
         function setStatic(self,flag)
@@ -85,13 +90,23 @@ classdef shape < matlab.mixin.SetGet
             set(self,'staticFlag',flag)
         end
 
-        function setOptions(opts)
+        function setOptions(self,fields,values)
             % Set additional items to draw
             % OPTIONS:
-            % 'title', string : add text to the shape drawing
-            % 'coordinate', size : draw the shape's coordinate frame at the COM
-            % 'lineStyle', style : change the style of the line
-
+            % 'title', string : add text to the shape drawing % todo
+            % 'frame', size : draw the shape's coordinate frame at the COM
+            % 'lineStyle', style : change the style of the line % todo
+            arguments
+                self 
+                fields (1,:) string
+                values (1,:)
+            end
+            if length(fields) ~= length(values)
+                error("Length of option arrays must be equal")
+            end
+            for i = 1:length(fields)
+                set(self,"options",struct(fields(i),values(i)))
+            end
         end
         % setters
         function set.body(obj,newBody)
@@ -103,9 +118,30 @@ classdef shape < matlab.mixin.SetGet
         function set.staticFlag(obj,flag)
             obj.staticFlag = flag;
         end
+        function set.options(obj,field_val)
+            field = fieldnames(field_val);
+            val = struct2cell(field_val);
+            obj.options.(field{1}) = val{1};
+            % oldvals = obj.options;
+            % obj.options = setfield(oldvals,field{1},val{1});% setfield(oldvals,field_val{1},field_val{2});
+        end
+    end
+
+    methods (Access=private)
+        function drawCoordinate(self,pos,rot)
+            % draw the coordinate frame of the body
+                % pos : position of the body
+                % rot : rotation of body
+            frame = TranslateAndRotate(pos,rot,...
+                                       CoordSys2D(0.5,0.2,pi/4));
+            plot(frame(1,:),frame(2,:),"Color",'b');
+            text(frame(1,2)+0.05,frame(2,2)+0.05,'\xi','FontSize',18)
+            text(frame(1,6)+0.05,frame(2,6)+0.05,'\eta','FontSize',18)
+        end
     end
 end
 
+% helper functions
 function f = TranslateAndRotate(r, phi, body)
 % TranslateAndRotate(r, A, body)
 % r    = [x;y] position of center of mass in global coordinates
@@ -113,4 +149,21 @@ function f = TranslateAndRotate(r, phi, body)
 % body = [[x;y], [x;y],....] body points in local coordinates
 b = [cos(phi), -sin(phi);sin(phi), cos(phi)]*body;
 f = [r(1,1)+b(1,:);r(2,1)+b(2,:)];
+end
+
+function M = CoordSys2D(la,lt,va)
+% CoordSys2D(la,lt,va)
+% Creates a two dimensional coordinate system
+% la  = length of arrow
+% lt  = length of arrow tip
+% va  = angle for arrow tip in radians
+M = [[la+lt*cos(pi-va),lt*sin(pi-va)]',...
+    [la,0]',...
+    [la+lt*cos(pi+va),lt*sin(pi+va)]',...
+    [la,0]',...
+    [0,0]',...
+    [0,la]',...
+    [lt*cos(3*pi/2-va),la+lt*sin(3*pi/2-va)]',...
+    [0,la]',...
+    [lt*cos(3*pi/2+va),la+lt*sin(3*pi/2+va)]'];
 end
