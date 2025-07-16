@@ -79,7 +79,10 @@ classdef animation < matlab.mixin.SetGet
 
         function suppObj = createSupport(self,pos,rot,size)
             % create a support
-            q_vec = [pos', rot];
+                % pos : position of support [x,y]
+                % rot : [deg] rotation
+                % size : size of support
+            q_vec = [pos', deg2rad(rot)];
             r = size*0.3; % radius of top section
             theta = 65; % angle of top of support
             phi = 180-theta; % angle of lower side of support
@@ -153,7 +156,7 @@ classdef animation < matlab.mixin.SetGet
             % obj.options = setfield(oldvals,field{1},val{1});% setfield(oldvals,field_val{1},field_val{2});
         end
     end
-    
+
     methods (Access=private)
         function drawCoordinate(self,pos,rot)
             % draw the coordinate frame of the body

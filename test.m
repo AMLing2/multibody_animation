@@ -13,8 +13,10 @@ a.createSquare(q_vec,2);
 a.createSquare(q_vec+[1,0,0],1);
 circ = a.createCirc(q_vec,5,25,[0;4]);
 circ.createHole([-1 -1 2 2; 1 0 0 1])
-a.createTurtleGraphics(q_vec,[1;2],[0,1,90,1,30,1,120,1]);
-sup = a.createSupport([-1;-1],deg2rad(0),1);
+turt = a.createTurtleGraphics(q_vec,[1;2],[0,1,90,1,30,1,120,1]);
+sup = a.createSupport([-1;-1],120,1);
+turt.addPoint([3;3],'A')
+sup.addPoint([0;0],'B',8)
 
 % square.drawBody(2)
 a.animate(t_vec,0.2)

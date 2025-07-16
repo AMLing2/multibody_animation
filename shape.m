@@ -6,7 +6,9 @@ classdef shape < matlab.mixin.SetGet
         q_vec % link to position x,y & rotation, phi [x;y;phi] matrix
         body % outline of body
         lines = []
-        options
+        points % points struct of body
+        options = struct('drawFrame',true,...
+                         'fontSize',18);
         staticFlag = false
     end
 
@@ -16,8 +18,6 @@ classdef shape < matlab.mixin.SetGet
             obj.q_vec = q_vec;
             % obj.body = body;
             obj.body = polyshape(body(1,:),body(2,:));
-            % initialize options struct
-            obj.options.drawFrame = true;
         end
 
         function createHole(self,points)
@@ -55,8 +55,27 @@ classdef shape < matlab.mixin.SetGet
             set(self,'lines',line)
         end
 
-        function addPoint(self,style)
-
+        function addPoint(self,pos,name,MarkerSize,Marker,drawName)
+            % Add a point to the body
+                % pos : position of the point [x;y]
+                % name : name of point
+                % Marker : point marker style (see plot's linespec)
+                % MarkerSize : size of the point
+                % drawName : bool to draw name
+            arguments
+                self 
+                pos (1,2)
+                name string
+                MarkerSize = 6
+                Marker string = 'o'
+                drawName logical = true
+            end
+            p.pos = pos;
+            p.name = name;
+            p.MarkerSize = MarkerSize;
+            p.Marker = Marker;
+            p.drawName = drawName;
+            set(self,'point',p);
         end
 
         function drawBody(self,n)
@@ -80,6 +99,7 @@ classdef shape < matlab.mixin.SetGet
             if self.options.drawFrame
                 drawCoordinate(self,q(1:2)',q(3))
             end
+            drawPoints(self,q(1:2)',q(3));
         end
 
         function setStatic(self,flag)
@@ -92,10 +112,14 @@ classdef shape < matlab.mixin.SetGet
 
         function setOptions(self,fields,values)
             % Set additional items to draw
+            % fields : array of options
+            % value : cell of values
+
             % OPTIONS:
             % 'title', string : add text to the shape drawing % todo
             % 'frame', size : draw the shape's coordinate frame at the COM
             % 'lineStyle', style : change the style of the line % todo
+            % 'fontSize', double : font size
             arguments
                 self 
                 fields (1,:) string
@@ -125,6 +149,9 @@ classdef shape < matlab.mixin.SetGet
             % oldvals = obj.options;
             % obj.options = setfield(oldvals,field{1},val{1});% setfield(oldvals,field_val{1},field_val{2});
         end
+        function set.points(obj,pointStruct)
+            obj.points = [obj.points pointStruct];
+        end
     end
 
     methods (Access=private)
@@ -135,8 +162,20 @@ classdef shape < matlab.mixin.SetGet
             frame = TranslateAndRotate(pos,rot,...
                                        CoordSys2D(0.5,0.2,pi/4));
             plot(frame(1,:),frame(2,:),"Color",'b');
-            text(frame(1,2)+0.05,frame(2,2)+0.05,'\xi','FontSize',18)
-            text(frame(1,6)+0.05,frame(2,6)+0.05,'\eta','FontSize',18)
+            text(frame(1,2)+0.05,frame(2,2)+0.05,'\xi','FontSize',self.options.fontSize)
+            text(frame(1,6)+0.05,frame(2,6)+0.05,'\eta','FontSize',self.options.fontSize)
+        end
+
+        function drawPoints(self,pos,rot)
+            % draw each of the body's points
+            for i = 1:length(self.points)
+                p = self.points(i);
+                ploc = TranslateAndRotate(pos,rot,p.pos');
+                plot(ploc(1),ploc(2),'Marker',p.Marker,'Color','black','MarkerSize',p.MarkerSize);
+                if p.drawName
+                    text(ploc(1)+0.05,ploc(2)+0.05,p.name,'FontSize',self.options.fontSize)
+                end
+            end
         end
     end
 end
