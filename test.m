@@ -15,9 +15,16 @@ circ = a.createCirc(q_vec,5,25,[0;4]);
 circ.createHole([-1 -1 2 2; 1 0 0 1])
 turt = a.createTurtleGraphics(q_vec,[1;2],[0,1,90,1,30,1,120,1]);
 sup = a.createSupport([-1;-1],120,1);
-turt.addPoint([3;3],'A')
-sup.addPoint([0;0],'B',8)
+turt.addPoint([3;3],'A');
+sup.addPoint([0;0],'B',8);
+a.createLine([0,5;0,1],20,1);
+a.linkPoints(turt.point('A'),...
+             sup.point('B'),'line');
 
-% square.drawBody(2)
 a.animate(t_vec,0.2)
 disp(a)
+
+%TODO list:
+% gears, create 1 segment with turtle and repeat n times probably
+% rotational spring and damper
+% shape resizing for hydraulics or other visuals? will be very simple to add

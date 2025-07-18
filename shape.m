@@ -2,11 +2,11 @@ classdef shape < matlab.mixin.SetGet
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
 
-    properties
+    properties (SetAccess = private)
         q_vec % link to position x,y & rotation, phi [x;y;phi] matrix
         body % outline of body
         lines = []
-        points % points struct of body
+        points % array of points struct of body
         options = struct('drawFrame',true,...
                          'fontSize',18);
         staticFlag = false
@@ -70,6 +70,14 @@ classdef shape < matlab.mixin.SetGet
                 Marker string = 'o'
                 drawName logical = true
             end
+            for i = 1:length(self.points) % check if point already exists
+                if strcmp(self.points(i).name, name)
+                    error("Points on same shape require unique names")
+                end
+            end
+            % if any(strcmp(self.points(1:length(self.points)).name,name)) % didnt work unfortunately 
+            %     error("Points on same shape require unique names")
+            % end
             p.pos = pos;
             p.name = name;
             p.MarkerSize = MarkerSize;
@@ -78,7 +86,7 @@ classdef shape < matlab.mixin.SetGet
             set(self,'point',p);
         end
 
-        function drawBody(self,n)
+        function pointArray = drawBody(self,n)
             % draw the body on the current figure
                 % n : index in q_vec position vector
             if self.staticFlag
@@ -99,7 +107,7 @@ classdef shape < matlab.mixin.SetGet
             if self.options.drawFrame
                 drawCoordinate(self,q(1:2)',q(3))
             end
-            drawPoints(self,q(1:2)',q(3));
+            pointArray = drawPoints(self,q(1:2)',q(3));
         end
 
         function setStatic(self,flag)
@@ -132,6 +140,31 @@ classdef shape < matlab.mixin.SetGet
                 set(self,"options",struct(fields(i),values(i)))
             end
         end
+        function cellPRef = point(self,name)
+            % return a reference to a point for use in creating links between points
+                % name : name of point on object
+                arguments
+                    self 
+                    name string
+                end
+            if isempty(self.points)
+                error("No points have been created");
+            end
+            pInd = 0;
+            for i = 1:length(self.points) % get index for the point
+                if strcmp(self.points(i).name, name)
+                    pInd = i;
+                    break
+                end
+            end
+            % alt: find(strcmp(self.points.name,name),1)
+            if pInd == 0
+                error("Point %s not found",name)
+            end
+            cellPRef.obj = self;
+            cellPRef.index = pInd;
+        end
+
         % setters
         function set.body(obj,newBody)
             obj.body = newBody;
@@ -166,8 +199,9 @@ classdef shape < matlab.mixin.SetGet
             text(frame(1,6)+0.05,frame(2,6)+0.05,'\eta','FontSize',self.options.fontSize)
         end
 
-        function drawPoints(self,pos,rot)
+        function pointArray = drawPoints(self,pos,rot)
             % draw each of the body's points
+            pointArray = zeros(2,length(self.points));
             for i = 1:length(self.points)
                 p = self.points(i);
                 ploc = TranslateAndRotate(pos,rot,p.pos');
@@ -175,6 +209,7 @@ classdef shape < matlab.mixin.SetGet
                 if p.drawName
                     text(ploc(1)+0.05,ploc(2)+0.05,p.name,'FontSize',self.options.fontSize)
                 end
+                pointArray(:,i) = ploc; % save point for return
             end
         end
     end

@@ -6,6 +6,7 @@ classdef animation < matlab.mixin.SetGet
         shapes % array of shape objects
         options
         coordPos
+        links % array of link objects
     end
 
     methods
@@ -98,6 +99,42 @@ classdef animation < matlab.mixin.SetGet
             suppObj.setOptions('drawFrame',false)
         end
 
+        function shapeObj = createLine(self,points,n,d)
+            % draw a static line
+                % points : [x1,x2;y1,y2] of line
+                % n : number of ground lines, set to 0 to draw none
+                % d : length of ground lines
+            q = [0,0,0];
+            p = [0,1e-6,2e-6;0,1e-6,0]; % small polygon... TODO: make better
+            shapeObj = self.createCustom(q,p);
+            shapeObj.setStatic(true);
+            shapeObj.solidLine(points,n,d);
+            shapeObj.setOptions('drawFrame',false);
+        end
+
+        function shapeObj = createGear(self)
+            % create a gear shape TODO
+        end
+
+        function linkObj = linkPoints(self,objPoint1,objPoint2,style)
+            % create a link between two shape object's points, returns link object
+                % objPoint1 : a point on the first shape object
+                % objPoint2 : a point on the second shape object
+                % style : style of link, one of hte following:
+                    % 'line'
+                    % 'spring'
+                    % 'damper'
+                    % 'spring-damper'
+            
+            % Find indexes to referenced shape objects:
+            shapeIndexes = [find(eq(self.shapes,objPoint1.obj)),...
+                            find(eq(self.shapes,objPoint2.obj))];
+            linkObj = link(shapeIndexes,...
+                           [objPoint1.index, objPoint2.index],...
+                           style);
+            set(self,'links',linkObj);
+        end
+
         function shapeObj = createCustom(self,q_link,points)
             % Create a custom shape with specified line points
             shapeObj = shape(q_link,points);
@@ -109,17 +146,23 @@ classdef animation < matlab.mixin.SetGet
             arguments
                 self 
                 t_vec 
-                t_pause double = 0.01
+                t_pause double = 0.01 % [s]
             end
             figure
             axis equal
             hold on
             axis(self.options.axis)
+            pointPos = cell(1,length(self.shapes));
             for n = 1:length(t_vec)
                 cla
                 drawCoordinate(self,self.coordPos',0)
+                % draw shapes
                 for i = 1:length(self.shapes)
-                    self.shapes(i).drawBody(n);
+                    pointPos{i} = self.shapes(i).drawBody(n);
+                end
+                % draw links
+                for i = 1:length(self.links)
+                    self.links(i).drawLink(pointPos);
                 end
                 pause(t_pause);
             end
@@ -148,6 +191,9 @@ classdef animation < matlab.mixin.SetGet
         function set.shapes(obj,newShape)
             obj.shapes = [obj.shapes newShape];
         end
+        function set.links(obj,newLink)
+            obj.links = [obj.links newLink];
+        end
         function set.options(obj,field_val)
             field = fieldnames(field_val);
             val = struct2cell(field_val);
@@ -158,6 +204,14 @@ classdef animation < matlab.mixin.SetGet
     end
 
     methods (Access=private)
+        function pLen = initLinks(self)
+            % initialize the animation scene if using links % REMOVE?
+            p_indexes = [];
+            for i = 1:length(self.shapes)
+                p_indexes = [p_indexes, length(self.shapes(i).points)];
+            end
+            pLen = sum(p_indexes);
+        end
         function drawCoordinate(self,pos,rot)
             % draw the coordinate frame of the body
                 % pos : position of the body
