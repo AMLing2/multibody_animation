@@ -15,9 +15,28 @@ classdef shape < matlab.mixin.SetGet
     methods
         function obj = shape(q_vec,body) % constructor
             % Construct an instance of a shape class
+            arguments
+                q_vec (:,3)
+                body 
+            end
             obj.q_vec = q_vec;
             % obj.body = body;
             obj.body = polyshape(body(1,:),body(2,:));
+        end
+
+        function createSlot(self,pos,phi,L,r)
+            % Create a hole in the body
+                % pos : starting position of slot
+                % phi : angle
+                % L : length of slot in direction of angle
+                % r : half height of slot (radius of fillets)
+            seg = linspace(pi/2,-pi/2,10); % segments of semicircles
+            sPoints = [[L+r*cos(seg); % [x;y]
+                          r*sin(seg)],...
+                       [-r*cos(seg);
+                        -r*sin(seg)]];
+            pRot = TranslateAndRotate(pos,deg2rad(phi),sPoints);
+            self.createHole(pRot);
         end
 
         function createHole(self,points)
@@ -59,7 +78,7 @@ classdef shape < matlab.mixin.SetGet
             % Add a point to the body
                 % pos : position of the point [x;y]
                 % name : name of point
-                % Marker : point marker style (see plot's linespec)
+                % Marker : point marker style (see plot's linespec for markers)
                 % MarkerSize : size of the point
                 % drawName : bool to draw name
             arguments
@@ -67,7 +86,7 @@ classdef shape < matlab.mixin.SetGet
                 pos (1,2)
                 name string
                 MarkerSize = 6
-                Marker string = 'o'
+                Marker string = '.' % dot, 'o' for circle
                 drawName logical = true
             end
             for i = 1:length(self.points) % check if point already exists

@@ -22,13 +22,13 @@ classdef link
             switch self.style
                 case 'line'
                     self.line(pos);
+                case 'spring'
+                    self.spring(pos);
+                case 'damper'
+                    disp("not implemented");
+                case 'spring-damper'
+                    self.springDamper(pos);
             end
-        end
-
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
         end
     end
     methods (Access = private)
@@ -37,5 +37,79 @@ classdef link
                 % pos : line points
             plot(pos(1,1:2),pos(2,1:2));
         end
+        function spring(self,pos)
+            % Draw a spring
+                % pos : line points
+            f = SpringData(pos(:,1),pos(:,2),0.6,20,0.5);
+            plot(f(1,:),f(2,:));
+        end
+        function damper(self,pos) %TODO: add
+            % Draw a spring
+                % pos : line points
+            f = SpringData(pos(:,1),pos(:,2),0.6,20,0.5);
+            plot(f(1,:),f(2,:));
+        end
+        function springDamper(self,pos)
+            % Draw a spring-damper
+                % pos : line points
+            f = SpringDamperData(pos(:,1),pos(:,2),0.6,20,0.5,0.5,0.5,0.5,0.5,0.5);
+            plot(f(1,:),f(2,:));
+        end
     end
+end
+
+function f = SpringData(P1, P2, Width,Ncoil,L_end)
+% f = SpringData(P1, P2, Width,Ncoil)
+% P1    = [x;y] starting point
+% P2    = [x;y] end point
+% Width = width of spring
+% Ncoil = number of coils in the spring
+% L_end = length from end to start of coil
+v = P2 - P1;
+lv = norm(v);
+Lcoil = (lv-2*L_end)/Ncoil;
+theta = atan2(Width/2,Lcoil/4);
+if (lv>2*L_end)
+    h = [[0;0], [L_end;0]];
+    for i=1:Ncoil
+%         h = [h, ([L_end+(i-1)*Lcoil;Width/2*[cos(theta);sin(theta)]),  ([L_end+i*Lcoil - Lcoil*3/4;0]+Width*[cos(-theta);sin(-theta)]),  ([L_end+i*Lcoil - Lcoil*1/4;0]+Width/2*[cos(theta);sin(theta)])];
+        h = [h, ([L_end+(i-1+1/4)*Lcoil;Width/2]), [L_end+(i-1+3/4)*Lcoil;-Width/2], [L_end+i*Lcoil;0]];
+    end
+    h = [h, [lv;0]];
+else
+    h = [[0;0], [lv/2;0], [lv/2;Width/2], [lv/2;-Width/2], [lv/2;0], [lv;0]];
+end
+phi = atan2(v(2,1), v(1,1));
+f = [cos(phi), -sin(phi);sin(phi), cos(phi)]*h;
+f = [P1(1,1)+f(1,:);P1(2,1)+f(2,:)];
+end
+
+function f = SpringDamperData(P1, P2, Width,Ncoil,L_end,L1,L2,L3,L4,L5)
+% f = SpringData(P1, P2, Width,Ncoil)
+% P1    = [x;y] starting point
+% P2    = [x;y] end point
+% Width = width of spring
+% Ncoil = number of coils in the spring
+% L_end = length from end to start of coil
+% L1    = width of spring-damper
+% L2    = length of piston rod
+% L3    = length of cylinder rod
+% L4    = width of cylinder
+% L5    = length of cylinder
+v = P2 - P1;
+lv = norm(v);
+Lcoil = (lv-2*L_end)/Ncoil;
+theta = atan2(Width/2,Lcoil/4);
+if (lv>2*L_end)
+    h = [[L_end+L3+L5;L1/2+L4/2], [L_end+L3;L1/2+L4/2], [L_end+L3;L1/2-L4/2], [L_end+L3+L5;L1/2-L4/2], [L_end+L3;L1/2-L4/2], [L_end+L3;L1/2], [L_end;L1/2], [L_end;0], [0;0], [L_end;0], [L_end;-L1/2]];
+    for i=1:Ncoil
+        h = [h, ([L_end+(i-1+1/4)*Lcoil;Width/2-L1/2]), [L_end+(i-1+3/4)*Lcoil;-Width/2-L1/2], [L_end+i*Lcoil;-L1/2]];
+    end
+    h = [h, [lv-L_end;0], [lv-L_end;L1/2], [lv-L_end-L2;L1/2], [lv-L_end-L2;L1/2+0.7*L4/2], [lv-L_end-L2;L1/2-0.7*L4/2], [lv-L_end-L2;L1/2], [lv-L_end;L1/2], [lv-L_end;0],           [lv;0]];
+else
+    h = [[0;0], [lv/2;0], [lv/2;Width/2], [lv/2;-Width/2], [lv/2;0], [lv;0]];
+end
+phi = atan2(v(2,1), v(1,1));
+f = [cos(phi), -sin(phi);sin(phi), cos(phi)]*h;
+f = [P1(1,1)+f(1,:);P1(2,1)+f(2,:)];
 end

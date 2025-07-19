@@ -31,6 +31,15 @@ classdef animation < matlab.mixin.SetGet
             shapeObj = self.createCustom(q_link,points);
         end
 
+        function shapeObj = createRect(self,q_link,top,bottom,left,right)
+            % Create a rectangle
+            points = [[right;top],... % [x;y]
+                      [right;-bottom],...
+                      [-left;-bottom],...
+                      [-left;top]];
+            shapeObj = self.createCustom(q_link,points);
+        end
+
         function shapeObj = createCirc(self,q_link, r, varargin)
             % Create a circle, returns a shape object 
                 % r : radius of circle
@@ -141,19 +150,21 @@ classdef animation < matlab.mixin.SetGet
             set(self,'shapes', shapeObj);
         end
 
-        function animate(self,t_vec,t_pause)
+        function animate(self,t_vec,t_pause,skip)
             % Draw animation from shapes based on a time vector
+                % t_vec : time vector
             arguments
                 self 
                 t_vec 
                 t_pause double = 0.01 % [s]
+                skip = 20
             end
             figure
             axis equal
             hold on
             axis(self.options.axis)
             pointPos = cell(1,length(self.shapes));
-            for n = 1:length(t_vec)
+            for n = 1:skip:length(t_vec)
                 cla
                 drawCoordinate(self,self.coordPos',0)
                 % draw shapes
@@ -164,6 +175,7 @@ classdef animation < matlab.mixin.SetGet
                 for i = 1:length(self.links)
                     self.links(i).drawLink(pointPos);
                 end
+                title(['t = ',num2str(t_vec(n))])
                 pause(t_pause);
             end
         end

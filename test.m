@@ -19,12 +19,13 @@ turt.addPoint([3;3],'A');
 sup.addPoint([0;0],'B',8);
 a.createLine([0,5;0,1],20,1);
 a.linkPoints(turt.point('A'),...
-             sup.point('B'),'line');
+             sup.point('B'),'spring-damper');
 
-a.animate(t_vec,0.2)
+a.animate(t_vec,0.2,1)
 disp(a)
 
 %TODO list:
+% fix support's solid line
 % gears, create 1 segment with turtle and repeat n times probably
 % rotational spring and damper
 % shape resizing for hydraulics or other visuals? will be very simple to add
