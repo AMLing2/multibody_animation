@@ -182,6 +182,8 @@ classdef shape < matlab.mixin.SetGet
             end
             cellPRef.obj = self;
             cellPRef.index = pInd;
+            cellPRef.init = TranslateAndRotate(self.q_vec(1,1:2)',self.q_vec(1,3),...
+                                               self.points(pInd).pos'); % point at t=0
         end
 
         % setters

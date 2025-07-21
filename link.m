@@ -4,15 +4,40 @@ classdef link
         cellInd % indexes points to shape objects
         pointInd % indexes to points within shape's specific point output
         style % 'line', 'spring', 'damper', 'spring-damper' anything else relevant?
-        options % TODO: draw length, draw other stuff?
+        options = struct('L_end',0,... % initialize struct with empty options
+                         'Ncoils',0,...
+                         'width_spring', 0,...
+                         'L_pist',0,...
+                         'L_rod',0,...
+                         'width_cyl',0,...
+                         'L_cyl',0);
     end
 
     methods
-        function obj = link(cellInd,pointInd,style)
+        function obj = link(cellInd,pointInd,initP,style)
             % constructor
             obj.cellInd = cellInd;
             obj.pointInd = pointInd;
             obj.style = style;
+            % initialize visuals for spring and dampers
+            initLen = sqrt((initP(1,1)-initP(1,2))^2+(initP(2,1)-initP(2,2))^2);
+            width = 0.5;
+            switch style
+                case 'spring'
+                    obj.options.L_end = initLen/4;
+                    obj.options.Ncoils = round(initLen*2.5);
+                    obj.options.width_spring = width;
+                case 'damper'
+                    disp("not implemented")
+                case 'spring-damper'
+                    obj.options.L_end = initLen/4;
+                    obj.options.Ncoils = round(initLen*2.5);
+                    obj.options.width_spring = width;
+                    obj.options.L_pist = initLen/3;
+                    obj.options.L_rod = initLen/5;
+                    obj.options.width_cyl = width-0.1;
+                    obj.options.L_cyl = initLen/2.5;
+            end
         end
 
         function drawLink(self,cellPoints)
@@ -40,7 +65,8 @@ classdef link
         function spring(self,pos)
             % Draw a spring
                 % pos : line points
-            f = SpringData(pos(:,1),pos(:,2),0.6,20,0.5);
+            f = SpringData(pos(:,1),pos(:,2),self.options.width_spring,...
+                self.options.Ncoils,self.options.L_end);
             plot(f(1,:),f(2,:));
         end
         function damper(self,pos) %TODO: add
@@ -52,7 +78,10 @@ classdef link
         function springDamper(self,pos)
             % Draw a spring-damper
                 % pos : line points
-            f = SpringDamperData(pos(:,1),pos(:,2),0.6,20,0.5,0.5,0.5,0.5,0.5,0.5);
+            f = SpringDamperData(pos(:,1),pos(:,2),self.options.width_spring,...
+                self.options.Ncoils,self.options.L_end,self.options.width_spring,...
+                self.options.L_pist,self.options.L_rod,self.options.width_cyl,...
+                self.options.L_cyl);
             plot(f(1,:),f(2,:));
         end
     end
@@ -99,7 +128,7 @@ function f = SpringDamperData(P1, P2, Width,Ncoil,L_end,L1,L2,L3,L4,L5)
 v = P2 - P1;
 lv = norm(v);
 Lcoil = (lv-2*L_end)/Ncoil;
-theta = atan2(Width/2,Lcoil/4);
+% theta = atan2(Width/2,Lcoil/4);
 if (lv>2*L_end)
     h = [[L_end+L3+L5;L1/2+L4/2], [L_end+L3;L1/2+L4/2], [L_end+L3;L1/2-L4/2], [L_end+L3+L5;L1/2-L4/2], [L_end+L3;L1/2-L4/2], [L_end+L3;L1/2], [L_end;L1/2], [L_end;0], [0;0], [L_end;0], [L_end;-L1/2]];
     for i=1:Ncoil

@@ -11,7 +11,7 @@ a = animation;
 a.setOptions('axis',{[-10.0 10 -10.0 10.0]})
 a.createSquare(q_vec,2);
 a.createSquare(q_vec+[1,0,0],1);
-circ = a.createCirc(q_vec,5,25,[0;4]);
+circ = a.createCircle(q_vec,5,25,[0;4]);
 circ.createHole([-1 -1 2 2; 1 0 0 1])
 turt = a.createTurtleGraphics(q_vec,[1;2],[0,1,90,1,30,1,120,1]);
 sup = a.createSupport([-1;-1],120,1);
@@ -25,7 +25,7 @@ a.animate(t_vec,0.2,1)
 disp(a)
 
 %TODO list:
-% fix support's solid line
+% all lines should have thicker linewidthss
 % gears, create 1 segment with turtle and repeat n times probably
-% rotational spring and damper
+% rotational spring and damper?
 % shape resizing for hydraulics or other visuals? will be very simple to add

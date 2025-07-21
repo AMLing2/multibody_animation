@@ -40,7 +40,7 @@ classdef animation < matlab.mixin.SetGet
             shapeObj = self.createCustom(q_link,points);
         end
 
-        function shapeObj = createCirc(self,q_link, r, varargin)
+        function shapeObj = createCircle(self,q_link, r, varargin)
             % Create a circle, returns a shape object 
                 % r : radius of circle
                 % offset : center offset
@@ -104,7 +104,7 @@ classdef animation < matlab.mixin.SetGet
             suppObj = self.createTurtleGraphics(q_vec,supStart,support);
             suppObj.setStatic(true);
             
-            suppObj.solidLine([-midsec/2,midsec/2;-h,-h],10,size/4)
+            suppObj.solidLine([-midsec/2,midsec/2;-h,-h],5,size/3)
             suppObj.setOptions('drawFrame',false)
         end
 
@@ -140,7 +140,7 @@ classdef animation < matlab.mixin.SetGet
                             find(eq(self.shapes,objPoint2.obj))];
             linkObj = link(shapeIndexes,...
                            [objPoint1.index, objPoint2.index],...
-                           style);
+                           [objPoint1.init,objPoint2.init],style);
             set(self,'links',linkObj);
         end
 
