@@ -21,7 +21,11 @@ classdef shape < matlab.mixin.SetGet
             end
             obj.q_vec = q_vec;
             % obj.body = body;
-            obj.body = polyshape(body(1,:),body(2,:));
+            if isempty(body)
+                obj.body = polyshape(); % create non-existing polygon rather than [] so that other funcs dont break
+            else
+                obj.body = polyshape(body(1,:),body(2,:));
+            end
         end
 
         function createSlot(self,pos,phi,L,r)
@@ -85,7 +89,7 @@ classdef shape < matlab.mixin.SetGet
                 self 
                 pos (1,2)
                 name string
-                MarkerSize = 6
+                MarkerSize = 8
                 Marker string = '.' % dot, 'o' for circle
                 drawName logical = true
             end
@@ -218,7 +222,7 @@ classdef shape < matlab.mixin.SetGet
                 % rot : rotation of body
             frame = TranslateAndRotate(pos,rot,...
                                        CoordSys2D(0.5,0.2,pi/4));
-            plot(frame(1,:),frame(2,:),"Color",'b');
+            plot(frame(1,:),frame(2,:),"Color",'b','LineWidth',1.5);
             text(frame(1,2)+0.05,frame(2,2)+0.05,'\xi','FontSize',self.options.fontSize)
             text(frame(1,6)+0.05,frame(2,6)+0.05,'\eta','FontSize',self.options.fontSize)
         end

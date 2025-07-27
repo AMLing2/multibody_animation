@@ -92,6 +92,12 @@ classdef animation < matlab.mixin.SetGet
                 % pos : position of support [x,y]
                 % rot : [deg] rotation
                 % size : size of support
+                arguments
+                    self 
+                    pos (2,1) = [0;0]
+                    rot = 0
+                    size = 1
+                end
             q_vec = [pos', deg2rad(rot)];
             r = size*0.3; % radius of top section
             theta = 65; % angle of top of support
@@ -114,8 +120,7 @@ classdef animation < matlab.mixin.SetGet
                 % n : number of ground lines, set to 0 to draw none
                 % d : length of ground lines
             q = [0,0,0];
-            p = [0,1e-6,2e-6;0,1e-6,0]; % small polygon... TODO: make better
-            shapeObj = self.createCustom(q,p);
+            shapeObj = self.createCustom(q,[]);
             shapeObj.setStatic(true);
             shapeObj.solidLine(points,n,d);
             shapeObj.setOptions('drawFrame',false);
@@ -225,7 +230,6 @@ classdef animation < matlab.mixin.SetGet
             field = fieldnames(field_val);
             val = struct2cell(field_val);
             obj.options.(field{1}) = val{1};
-
         end
     end
 
@@ -244,7 +248,7 @@ classdef animation < matlab.mixin.SetGet
                 % rot : rotation of body
             frame = TranslateAndRotate(pos,rot,...
                                        CoordSys2D(0.8,0.2,pi/4));
-            plot(frame(1,:),frame(2,:),"Color",'b');
+            plot(frame(1,:),frame(2,:),"Color",'b','LineWidth',1.5);
             text(frame(1,2)+0.05,frame(2,2)+0.05,'x','FontSize',18)
             text(frame(1,6)+0.05,frame(2,6)+0.05,'y','FontSize',18)
         end

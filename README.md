@@ -16,6 +16,7 @@ TODO:
 - force arrows on shapes (pos,dir,force,scalefac_width,scalefactor_length)
 - some way to do belts/ropes on moving shapes
     - point which ignores shape's orientation but instead uses a moving dir vector?
+    - Alternatively a point where the user can specify the local pos each frame
 - option to switch from x,y to other frames
 - drawing single frame with specified q_link for each shape for realtime drawing
 - clean up createLine

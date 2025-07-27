@@ -10,7 +10,8 @@ classdef link < matlab.mixin.SetGet
                          'L_pist',0,...
                          'L_rod',0,...
                          'width_cyl',0,...
-                         'L_cyl',0);
+                         'L_cyl',0,...
+                         'lineWidth',1.5);
     end
 
     methods
@@ -61,7 +62,7 @@ classdef link < matlab.mixin.SetGet
                 self 
             end
             arguments (Repeating)
-                field string {mustBeMember(field,["L_end","Ncoils","width_spring","L_pist","L_rod","width_cyl","L_cyl"])}
+                field string {mustBeMember(field,["L_end","Ncoils","width_spring","L_pist","L_rod","width_cyl","L_cyl","lineWidth"])}
                 value
             end
             if length(field) ~= length(value)
@@ -101,20 +102,20 @@ classdef link < matlab.mixin.SetGet
         function line(self,pos)
             % Draw a line
                 % pos : line points
-            plot(pos(1,1:2),pos(2,1:2));
+            plot(pos(1,1:2),pos(2,1:2),"LineWidth",self.options.lineWidth);
         end
         function spring(self,pos)
             % Draw a spring
                 % pos : line points
             f = SpringData(pos(:,1),pos(:,2),self.options.width_spring,...
                 self.options.Ncoils,self.options.L_end);
-            plot(f(1,:),f(2,:));
+            plot(f(1,:),f(2,:),"LineWidth",self.options.lineWidth);
         end
         function damper(self,pos) %TODO: add
             % Draw a spring
                 % pos : line points
             f = SpringData(pos(:,1),pos(:,2),0.6,20,0.5);
-            plot(f(1,:),f(2,:));
+            plot(f(1,:),f(2,:),"LineWidth",self.options.lineWidth);
         end
         function springDamper(self,pos)
             % Draw a spring-damper
@@ -123,7 +124,7 @@ classdef link < matlab.mixin.SetGet
                 self.options.Ncoils,self.options.L_end,self.options.width_spring,...
                 self.options.L_pist,self.options.L_rod,self.options.width_cyl,...
                 self.options.L_cyl);
-            plot(f(1,:),f(2,:));
+            plot(f(1,:),f(2,:),"LineWidth",self.options.lineWidth);
         end
     end
 end
