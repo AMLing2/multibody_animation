@@ -137,7 +137,7 @@ classdef shape < matlab.mixin.SetGet
             set(self,'staticFlag',flag)
         end
 
-        function setOptions(self,fields,values)
+        function setOptions(self,field,value)
             % Set additional items to draw
             % fields : array of options
             % value : cell of values
@@ -149,16 +149,19 @@ classdef shape < matlab.mixin.SetGet
             % 'fontSize', double : font size
             arguments
                 self 
-                fields (1,:) string
-                values (1,:)
             end
-            if length(fields) ~= length(values)
-                error("Length of option arrays must be equal")
+            arguments (Repeating)
+                field string {mustBeMember(field,["drawFrame","fontSize"])}
+                value
             end
-            for i = 1:length(fields)
-                set(self,"options",struct(fields(i),values(i)))
+            if length(field) ~= length(value)
+                error("Expected even number of options and values")
+            end
+            for i = 1:length(field)
+                set(self,"options",struct(field{i},value{i}))
             end
         end
+
         function cellPRef = point(self,name)
             % return a reference to a point for use in creating links between points
                 % name : name of point on object

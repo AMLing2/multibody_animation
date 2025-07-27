@@ -136,6 +136,12 @@ classdef animation < matlab.mixin.SetGet
                     % 'spring-damper'
             
             % Find indexes to referenced shape objects:
+            arguments
+                self 
+                objPoint1 
+                objPoint2 
+                style string {mustBeMember(style,["line","spring","damper","spring-damper"])}
+            end
             shapeIndexes = [find(eq(self.shapes,objPoint1.obj)),...
                             find(eq(self.shapes,objPoint2.obj))];
             linkObj = link(shapeIndexes,...
@@ -150,7 +156,7 @@ classdef animation < matlab.mixin.SetGet
             set(self,'shapes', shapeObj);
         end
 
-        function animate(self,t_vec,t_pause,skip)
+        function animate(self,t_vec,t_pause,skip,func)
             % Draw animation from shapes based on a time vector
                 % t_vec : time vector
             arguments
@@ -158,6 +164,10 @@ classdef animation < matlab.mixin.SetGet
                 t_vec 
                 t_pause double = 0.01 % [s]
                 skip = 20
+                func = [] 
+            end
+            if ~isa(func,"function_handle") & ~isempty(func) % cant use [] in place of function_handle
+                error("Expected a function handle")
             end
             figure
             axis equal
@@ -176,11 +186,14 @@ classdef animation < matlab.mixin.SetGet
                     self.links(i).drawLink(pointPos);
                 end
                 title(['t = ',num2str(t_vec(n))])
+                if ~isempty(func)
+                    func(n);
+                end
                 pause(t_pause);
             end
         end
 
-        function setOptions(self,fields,values)
+        function setOptions(self,field,value)
             % Set additional items to draw
             % OPTIONS:
             % 'title', string : add text to the shape drawing % todo
@@ -188,14 +201,16 @@ classdef animation < matlab.mixin.SetGet
             % 'lineStyle', style : change the style of the line % todo
             arguments
                 self 
-                fields (1,:) string
-                values (1,:) cell
             end
-            if length(fields) ~= length(values)
-                error("Length of option arrays must be equal")
+            arguments (Repeating)
+                field string {mustBeMember(field,["axis"])}
+                value
             end
-            for i = 1:length(fields)
-                set(self,"options",struct(fields(i),values(i)))
+            if length(field) ~= length(value)
+                error("Expected even number of options and values")
+            end
+            for i = 1:length(field)
+                set(self,"options",struct(field{i},value{i}))
             end
         end
 
@@ -210,8 +225,7 @@ classdef animation < matlab.mixin.SetGet
             field = fieldnames(field_val);
             val = struct2cell(field_val);
             obj.options.(field{1}) = val{1};
-            % oldvals = obj.options;
-            % obj.options = setfield(oldvals,field{1},val{1});% setfield(oldvals,field_val{1},field_val{2});
+
         end
     end
 

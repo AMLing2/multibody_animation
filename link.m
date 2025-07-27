@@ -1,4 +1,4 @@
-classdef link
+classdef link < matlab.mixin.SetGet
     %Object for drawing a link between two shape object points
     properties (SetAccess = private)
         cellInd % indexes points to shape objects
@@ -22,21 +22,53 @@ classdef link
             % initialize visuals for spring and dampers
             initLen = sqrt((initP(1,1)-initP(1,2))^2+(initP(2,1)-initP(2,2))^2);
             width = 0.5;
+            opts = obj.options;
             switch style
                 case 'spring'
-                    obj.options.L_end = initLen/4;
-                    obj.options.Ncoils = round(initLen*2.5);
-                    obj.options.width_spring = width;
+                    opts.Ncoils = round(initLen*2.5);
+                    opts.L_end = initLen/4;
+                    opts.width_spring = width;
                 case 'damper'
                     disp("not implemented")
                 case 'spring-damper'
-                    obj.options.L_end = initLen/4;
-                    obj.options.Ncoils = round(initLen*2.5);
-                    obj.options.width_spring = width;
-                    obj.options.L_pist = initLen/3;
-                    obj.options.L_rod = initLen/5;
-                    obj.options.width_cyl = width-0.1;
-                    obj.options.L_cyl = initLen/2.5;
+                    opts.L_end = initLen/4;
+                    opts.Ncoils = round(initLen*2.5);
+                    opts.width_spring = width;
+                    opts.L_pist = initLen/3;
+                    opts.L_rod = initLen/5;
+                    opts.width_cyl = width-0.1;
+                    opts.L_cyl = initLen/2.5;
+            end
+            % hacky workaround because MATLAB refuses to initialize options
+            % struct properly when not using set.options setter
+            f = fieldnames(opts);
+            for i = 1:length(fieldnames(opts))
+                setOptions(obj,f{i},opts.(f{i}));
+            end
+        end
+
+        function setOptions(self,field,value)
+            % Change visualization of links
+            % field : array of options
+            % value : cell of values
+
+            % OPTIONS:
+            % 'title', string : add text to the shape drawing % todo
+            % 'frame', size : draw the shape's coordinate frame at the COM
+            % 'lineStyle', style : change the style of the line % todo
+            % 'fontSize', double : font size
+            arguments
+                self 
+            end
+            arguments (Repeating)
+                field string {mustBeMember(field,["L_end","Ncoils","width_spring","L_pist","L_rod","width_cyl","L_cyl"])}
+                value
+            end
+            if length(field) ~= length(value)
+                error("Expected even number of options and values")
+            end
+            for i = 1:length(field)
+                set(self,"options",struct(field{i},value{i}))
             end
         end
 
@@ -55,7 +87,16 @@ classdef link
                     self.springDamper(pos);
             end
         end
+
+        % setters
+        function set.options(obj,field_val)
+            field = fieldnames(field_val);
+            val = struct2cell(field_val);
+            obj.options.(field{1}) = val{1};
+        end
     end
+
+
     methods (Access = private)
         function line(self,pos)
             % Draw a line

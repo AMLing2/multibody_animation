@@ -8,7 +8,7 @@ q_vec = [0,0,0;
 t_vec = 1:length(q_vec);
 
 a = animation;
-a.setOptions('axis',{[-10.0 10 -10.0 10.0]})
+a.setOptions('axis',[-10.0 10 -10.0 10.0])
 a.createSquare(q_vec,2);
 a.createSquare(q_vec+[1,0,0],1);
 circ = a.createCircle(q_vec,5,25,[0;4]);
@@ -18,14 +18,17 @@ sup = a.createSupport([-1;-1],120,1);
 turt.addPoint([3;3],'A');
 sup.addPoint([0;0],'B',8);
 a.createLine([0,5;0,1],20,1);
-a.linkPoints(turt.point('A'),...
+l1 = a.linkPoints(turt.point('A'),...
              sup.point('B'),'spring-damper');
-
-a.animate(t_vec,0.2,1)
+l1.setOptions("L_end",1,"Ncoils",10,"width_cyl",0.7)
+f = @(n) (text(-2,8,["frame: ";num2str(n)]));
+a.animate(t_vec,0.2,1,f)
 disp(a)
 
 %TODO list:
-% all lines should have thicker linewidthss
-% gears, create 1 segment with turtle and repeat n times probably
+% options need fixing
+% all lines should have thicker linewidths
+% gears
 % rotational spring and damper?
-% shape resizing for hydraulics or other visuals? will be very simple to add
+% shape resizing for hydraulics or other visuals? will be very simple to
+    % add with polygon's scale function
