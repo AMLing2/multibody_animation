@@ -22,7 +22,7 @@ l1 = a.linkPoints(turt.point('A'),...
              sup.point('B'),'spring-damper');
 l1.setOptions("L_end",1,"Ncoils",10,"width_cyl",0.7)
 
-turt.forceArrowPoint("A",linspace(0,2*pi,length(q_vec)),0:1:length(q_vec),"global",0.7,1);
+turt.forceArrowPoint("A",pi/2,0:1:length(q_vec),"local",0.7,1);
 f = @(n) (text(-2,8,["frame: ";num2str(n)]));
 a.animate(t_vec,0.2,1,f)
 disp(a)

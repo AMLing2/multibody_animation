@@ -283,6 +283,7 @@ classdef shape < matlab.mixin.SetGet
                 end
                 % rotation
                 if arrow.rotStatic; rot = arrow.rot(1); else rot = arrow.rot(n); end
+                if arrow.rotLocal; rot = rot + q(3); end
                 % force
                 if arrow.forceStatic; f = arrow.force(1); else f = arrow.force(n); end
                 if f ~= 0 % only draw arrow if force is applied
