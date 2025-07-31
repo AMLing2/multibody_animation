@@ -6,10 +6,12 @@ classdef shape < matlab.mixin.SetGet
         q_vec % link to position x,y & rotation, phi [x;y;phi] matrix
         body % outline of body
         lines = []
+        forceArrows = []
         points % array of points struct of body
         options = struct('drawFrame',true,...
                          'fontSize',18);
         staticFlag = false
+        fUnit = "kN" % unit of force
     end
 
     methods
@@ -48,6 +50,38 @@ classdef shape < matlab.mixin.SetGet
                 % points : verteces if hole
             newBody = addboundary(self.body,points(1,:),points(2,:));
             set(self,'body', newBody);
+        end
+
+        function forceArrowPoint(self,pName,rot,force,frame,sf_width,sf_length)
+            % Add a force arrow at a point on the shape
+                % pName : name of point
+                % grot : [radians] angle of force each timestep or a constant in the
+                    % specified reference frame
+                % force : force each timestep or a constant
+                % frame : "global" or "local" , if local then current timestep
+                    % shape angle + specified grot angle is applied, "global" by default
+                % sf_width : width scale factor of arrow based on force
+                % sf_length : length scale factor of arrow
+            %TODO: continue
+            arguments
+                self 
+                pName 
+                rot 
+                force 
+                frame string {mustBeMember(frame,["global","local"])}
+                sf_width 
+                sf_length 
+            end
+            % Create forceArrow struct
+            newArrow.pInd = self.findPoint(pName);
+            newArrow.rot = rot;
+            newArrow.rotStatic = isscalar(rot); % true if a single value was input (constant offset rotation)
+            newArrow.rotLocal = strcmp(frame,"local"); % dosent check for "global" but shouldnt really matter due to mustBeMember check
+            newArrow.force = force;
+            newArrow.forceStatic = isscalar(force);
+            newArrow.sf_width = sf_width;
+            newArrow.sf_length = sf_length;
+            set(self,'forceArrows',newArrow);
         end
 
         function solidLine(self,pos,n,d)
@@ -127,6 +161,9 @@ classdef shape < matlab.mixin.SetGet
                 nl = TranslateAndRotate(q(1:2)',q(3)',self.lines);
                 plot(nl(1,:),nl(2,:),"Color",'black')
             end
+            if ~isempty(self.forceArrows)
+                self.drawArrows(n,q);
+            end
             if self.options.drawFrame
                 drawCoordinate(self,q(1:2)',q(3))
             end
@@ -176,24 +213,14 @@ classdef shape < matlab.mixin.SetGet
             if isempty(self.points)
                 error("No points have been created");
             end
-            pInd = 0;
-            for i = 1:length(self.points) % get index for the point
-                if strcmp(self.points(i).name, name)
-                    pInd = i;
-                    break
-                end
-            end
-            % alt: find(strcmp(self.points.name,name),1)
-            if pInd == 0
-                error("Point %s not found",name)
-            end
+            pInd = self.findPoint(name);
             cellPRef.obj = self;
             cellPRef.index = pInd;
             cellPRef.init = TranslateAndRotate(self.q_vec(1,1:2)',self.q_vec(1,3),...
                                                self.points(pInd).pos'); % point at t=0
         end
 
-        % setters
+        %% setters
         function set.body(obj,newBody)
             obj.body = newBody;
         end
@@ -212,6 +239,9 @@ classdef shape < matlab.mixin.SetGet
         end
         function set.points(obj,pointStruct)
             obj.points = [obj.points pointStruct];
+        end
+        function set.forceArrows(obj,arrowStruct)
+            obj.forceArrows = [obj.forceArrows arrowStruct];
         end
     end
 
@@ -240,6 +270,46 @@ classdef shape < matlab.mixin.SetGet
                 pointArray(:,i) = ploc; % save point for return
             end
         end
+
+        function drawArrows(self,n,q) % a bit messy, could clean up arrow struct a bit?
+            % Draw each of the arrows
+            for i = 1:length(self.forceArrows)
+                arrow = self.forceArrows(i);
+                if ~isempty(arrow.pInd) % use point's position
+                    pos = TranslateAndRotate(q(1,1:2)',q(3),self.points(arrow.pInd).pos');
+                    %pos = q(1,1:2)'+self.points(arrow.pInd).pos;
+                else % use specified position, not implemented yet
+                    error("Not implemented error")
+                end
+                % rotation
+                if arrow.rotStatic; rot = arrow.rot(1); else rot = arrow.rot(n); end
+                % force
+                if arrow.forceStatic; f = arrow.force(1); else f = arrow.force(n); end
+                if f ~= 0 % only draw arrow if force is applied
+                    pArrow = TranslateAndRotate(pos,rot,forceArrow(f*arrow.sf_length,f*arrow.sf_width));
+                    plot(pArrow(1,:),pArrow(2,:),'Color',"R",'LineWidth',2);
+                end
+                text(pos(1)+0.5,pos(2)+1,strcat(num2str(f),"[",self.fUnit,"]"),'FontSize',self.options.fontSize);
+            end
+        end
+
+        function pInd = findPoint(self,name)
+            arguments
+                self 
+                name string
+            end
+            pInd = 0;
+            for i = 1:length(self.points) % get index for the point
+                if strcmp(self.points(i).name, name)
+                    pInd = i;
+                    break
+                end
+            end
+            % alt: find(strcmp(self.points.name,name),1)
+            if pInd == 0
+                error("Point %s not found",name)
+            end
+        end
     end
 end
 
@@ -255,7 +325,7 @@ end
 
 function M = CoordSys2D(la,lt,va)
 % CoordSys2D(la,lt,va)
-% Creates a two dimensional coordinate system
+% Creates a two dimensional coordinate systposem
 % la  = length of arrow
 % lt  = length of arrow tip
 % va  = angle for arrow tip in radians
@@ -268,4 +338,13 @@ M = [[la+lt*cos(pi-va),lt*sin(pi-va)]',...
     [lt*cos(3*pi/2-va),la+lt*sin(3*pi/2-va)]',...
     [0,la]',...
     [lt*cos(3*pi/2+va),la+lt*sin(3*pi/2+va)]'];
+end
+
+function M = forceArrow(l,w)
+% create a force arrow
+% l = length of arrow stem
+% w = thickness of arrow
+    %M = [[0;r],[l;r],[l;w],[l*2;0],[l;-w],[l;-r],[0;-r],[0;r]];
+    % somewhat nice looking arrow:
+    M = [[0;0],[-0.4;0.4],[-0.4;0.2],[-1;0.2],[-1;-0.2],[-0.4;-0.2],[-0.4;-0.4],[0;0]].*[l;w];
 end
