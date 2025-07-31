@@ -68,9 +68,9 @@ classdef shape < matlab.mixin.SetGet
                 pName 
                 rot 
                 force 
-                frame string {mustBeMember(frame,["global","local"])}
-                sf_width 
-                sf_length 
+                frame string {mustBeMember(frame,["global","local"])} = "local"
+                sf_width = 0.5
+                sf_length  = 1
             end
             % Create forceArrow struct
             newArrow.pInd = self.findPoint(pName);
@@ -289,8 +289,8 @@ classdef shape < matlab.mixin.SetGet
                 if f ~= 0 % only draw arrow if force is applied
                     pArrow = TranslateAndRotate(pos,rot,forceArrow(f*arrow.sf_length,f*arrow.sf_width));
                     plot(pArrow(1,:),pArrow(2,:),'Color',"R",'LineWidth',2);
+                    text(pArrow(1,4)+0.05,pArrow(2,4)+0.05,strcat(num2str(f),"[",self.fUnit,"]"),'FontSize',self.options.fontSize);
                 end
-                text(pos(1)+0.5,pos(2)+1,strcat(num2str(f),"[",self.fUnit,"]"),'FontSize',self.options.fontSize);
             end
         end
 
