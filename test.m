@@ -17,6 +17,7 @@ turt = a.createTurtleGraphics(q_vec,[1;2],[0,1,90,1,30,1,120,1]);
 sup = a.createSupport([-1;-1],120,1);
 turt.addPoint([3;3],'A');
 sup.addPoint([0;0],'B',8);
+sup.setOptions("FaceColor","black")
 a.createLine([0,5;0,1],20,1);
 l1 = a.linkPoints(turt.point('A'),...
              sup.point('B'),'spring-damper');

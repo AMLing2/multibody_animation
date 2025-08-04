@@ -111,7 +111,7 @@ classdef animation < matlab.mixin.SetGet
             suppObj.setStatic(true);
             
             suppObj.solidLine([-midsec/2,midsec/2;-h,-h],5,size/3)
-            suppObj.setOptions('drawFrame',false)
+            suppObj.setOptions('drawFrame',false,'FaceColor',"none")
         end
 
         function shapeObj = createLine(self,points,n,d)

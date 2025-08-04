@@ -9,7 +9,15 @@ classdef shape < matlab.mixin.SetGet
         forceArrows = []
         points % array of points struct of body
         options = struct('drawFrame',true,...
-                         'fontSize',18);
+                         'fontSize',18,...
+                         'FaceColor', "black",...
+                         'EdgeColor', "black",...
+                         'LineStyle',"-",...
+                         'LineWidth',2,...
+                         'FaceAlpha',0.35);
+            % In the future it would be nice to let the user input the
+            % plot's linespec without setOptions, maybe similar to Python's
+            % tuple unpacking for function args
         staticFlag = false
         fUnit = "kN" % unit of force
     end
@@ -156,10 +164,12 @@ classdef shape < matlab.mixin.SetGet
             pgon = translate(pgon,q(1:2));
             % np = self.body
             % plot(np(1,:),np(2,:))
-            plot(pgon)
+            plot(pgon,'FaceColor',self.options.FaceColor,'EdgeColor',self.options.EdgeColor,...
+                'LineStyle',self.options.LineStyle,'LineWidth',self.options.LineWidth,...
+                'FaceAlpha',self.options.FaceAlpha)
             if ~isempty(self.lines)
                 nl = TranslateAndRotate(q(1:2)',q(3)',self.lines);
-                plot(nl(1,:),nl(2,:),"Color",'black')
+                plot(nl(1,:),nl(2,:),"Color",self.options.EdgeColor)
             end
             if ~isempty(self.forceArrows)
                 self.drawArrows(n,q);
@@ -191,13 +201,18 @@ classdef shape < matlab.mixin.SetGet
             % OPTIONS:
             % 'title', string : add text to the shape drawing % todo
             % 'frame', size : draw the shape's coordinate frame at the COM
-            % 'lineStyle', style : change the style of the line % todo
             % 'fontSize', double : font size
+            % 'FaceColor', string or [r,g,b] vector : color of face of polygon
+            % 'EdgeColor', string or [r,g,b] vector : color of edge of polygon
+            % 'LineStyle', string : line style of polygon edges and lines
+            % 'LineWidth', double : width of polygon edges and lines
+            % 'FaceAlpha', double : alpha of body face (transparency)
+            % https://www.mathworks.com/help/matlab/ref/polyshape.plot.html
             arguments
                 self 
             end
             arguments (Repeating)
-                field string {mustBeMember(field,["drawFrame","fontSize"])}
+                field string {mustBeMember(field,["drawFrame","fontSize","FaceColor","EdgeColor","LineStyle","LineWidth","FaceAlpha"])}
                 value
             end
             if length(field) ~= length(value)
@@ -296,7 +311,7 @@ classdef shape < matlab.mixin.SetGet
                 if arrow.forceStatic; f = arrow.force(1); else f = arrow.force(n); end
                 if f ~= 0 % only draw arrow if force is applied
                     pArrow = TranslateAndRotate(pos,rot,forceArrow(f*arrow.sf_length,f*arrow.sf_width));
-                    plot(pArrow(1,:),pArrow(2,:),'Color',"R",'LineWidth',2);
+                    plot(pArrow(1,:),pArrow(2,:),'Color',"R",'LineWidth',self.options.LineWidth);
                     text(pArrow(1,4)+0.05,pArrow(2,4)+0.05,strcat(num2str(f),"[",self.fUnit,"]"),'FontSize',self.options.fontSize);
                 end
             end
