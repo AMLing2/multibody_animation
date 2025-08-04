@@ -170,6 +170,11 @@ classdef shape < matlab.mixin.SetGet
             pointArray = drawPoints(self,q(1:2)',q(3));
         end
 
+        function set_q(self,q_vec)
+            % change the q_vec, used during continous time animation
+            set(self,'q_vec',q_vec)
+        end
+
         function setStatic(self,flag)
             arguments
                 self 
@@ -229,6 +234,9 @@ classdef shape < matlab.mixin.SetGet
         end
         function set.staticFlag(obj,flag)
             obj.staticFlag = flag;
+        end
+        function set.q_vec(obj,q_vec)
+            obj.q_vec = q_vec;
         end
         function set.options(obj,field_val)
             field = fieldnames(field_val);

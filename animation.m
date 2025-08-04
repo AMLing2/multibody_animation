@@ -164,6 +164,9 @@ classdef animation < matlab.mixin.SetGet
         function animate(self,t_vec,t_pause,skip,func)
             % Draw animation from shapes based on a time vector
                 % t_vec : time vector
+                % t_pause : time paused between frames
+                % skip : number of frames to skip
+                % func : apply a function each frame
             arguments
                 self 
                 t_vec 
@@ -178,23 +181,35 @@ classdef animation < matlab.mixin.SetGet
             axis equal
             hold on
             axis(self.options.axis)
-            pointPos = cell(1,length(self.shapes));
             for n = 1:skip:length(t_vec)
-                cla
-                drawCoordinate(self,self.coordPos',0)
-                % draw shapes
-                for i = 1:length(self.shapes)
-                    pointPos{i} = self.shapes(i).drawBody(n);
-                end
-                % draw links
-                for i = 1:length(self.links)
-                    self.links(i).drawLink(pointPos);
-                end
+                self.drawFrame(n,func);
                 title(['t = ',num2str(t_vec(n))])
-                if ~isempty(func)
-                    func(n);
-                end
                 pause(t_pause);
+            end
+        end
+
+        function drawFrame(self, n, func)
+        % draw a singular frame on the current figure
+            %n : desired frame, defaults to 1
+            % func : function handle to evaluate during the frame
+            arguments
+                self 
+                n = 1
+                func = [] 
+            end
+            pointPos = cell(1,length(self.shapes));
+            cla
+            drawCoordinate(self,self.coordPos',0)
+            % draw shapes
+            for i = 1:length(self.shapes)
+                pointPos{i} = self.shapes(i).drawBody(n);
+            end
+            % draw links
+            for i = 1:length(self.links)
+                self.links(i).drawLink(pointPos);
+            end
+            if ~isempty(func)
+                func(n);
             end
         end
 

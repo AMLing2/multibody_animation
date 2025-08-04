@@ -27,6 +27,9 @@ f = @(n) (text(-2,8,["frame: ";num2str(n)]));
 a.animate(t_vec,0.2,1,f)
 disp(a)
 
+sup.set_q([-1,-5,pi])
+a.drawFrame()
+
 %TODO list:
 % options need fixing
 % all lines should have thicker linewidths
