@@ -60,7 +60,7 @@ classdef shape < matlab.mixin.SetGet
             set(self,'body', newBody);
         end
 
-        function forceArrowPoint(self,pName,rot,force,frame,sf_width,sf_length)
+        function forceArrowPoint(self,pName,rot,force,frame,from_towards,sf_width,sf_length,invert,txt_offset)
             % Add a force arrow at a point on the shape
                 % pName : name of point
                 % grot : [radians] angle of force each timestep or a constant in the
@@ -68,17 +68,22 @@ classdef shape < matlab.mixin.SetGet
                 % force : force each timestep or a constant
                 % frame : "global" or "local" , if local then current timestep
                     % shape angle + specified grot angle is applied, "global" by default
+                % from_towards : "from" or "towards", specifies if arrow should point towards or from the point 
                 % sf_width : width scale factor of arrow based on force
                 % sf_length : length scale factor of arrow
-            %TODO: continue
+                % invert : logical, specifies if the arrow should invert when the force is negative
+                % txt_offset : (1,2) offset of force text from corner of arrow
             arguments
                 self 
                 pName 
                 rot 
                 force 
                 frame string {mustBeMember(frame,["global","local"])} = "local"
+                from_towards string {mustBeMember(from_towards,["from","towards"])} = "towards"
                 sf_width = 0.5
                 sf_length  = 1
+                invert logical = 1
+                txt_offset (1,2) double = [0.05,0.05]
             end
             % Create forceArrow struct
             newArrow.pInd = self.findPoint(pName);
@@ -87,8 +92,11 @@ classdef shape < matlab.mixin.SetGet
             newArrow.rotLocal = strcmp(frame,"local"); % dosent check for "global" but shouldnt really matter due to mustBeMember check
             newArrow.force = force;
             newArrow.forceStatic = isscalar(force);
+            newArrow.towards = strcmp(from_towards,"towards");
+            newArrow.invert = invert;
             newArrow.sf_width = sf_width;
             newArrow.sf_length = sf_length;
+            newArrow.txt_offset = txt_offset;
             set(self,'forceArrows',newArrow);
         end
 
@@ -297,22 +305,25 @@ classdef shape < matlab.mixin.SetGet
         function drawArrows(self,n,q) % a bit messy, could clean up arrow struct a bit?
             % Draw each of the arrows
             for i = 1:length(self.forceArrows)
-                arrow = self.forceArrows(i);
-                if ~isempty(arrow.pInd) % use point's position
-                    pos = TranslateAndRotate(q(1,1:2)',q(3),self.points(arrow.pInd).pos');
+                ar = self.forceArrows(i);
+                if ~isempty(ar.pInd) % use point's position
+                    pos = TranslateAndRotate(q(1,1:2)',q(3),self.points(ar.pInd).pos');
                     %pos = q(1,1:2)'+self.points(arrow.pInd).pos;
                 else % use specified position, not implemented yet
                     error("Not implemented error")
                 end
                 % rotation
-                if arrow.rotStatic; rot = arrow.rot(1); else rot = arrow.rot(n); end
-                if arrow.rotLocal; rot = rot + q(3); end
+                if ar.rotStatic; rot = ar.rot(1); else rot = ar.rot(n); end
+                if ar.rotLocal; rot = rot + q(3); end
                 % force
-                if arrow.forceStatic; f = arrow.force(1); else f = arrow.force(n); end
+                if ar.forceStatic; f = ar.force(1); else f = ar.force(n); end
                 if f ~= 0 % only draw arrow if force is applied
-                    pArrow = TranslateAndRotate(pos,rot,forceArrow(f*arrow.sf_length,f*arrow.sf_width));
+                    arrow = forceArrow(f*ar.sf_length,f*ar.sf_width,sign(f),~ar.towards);
+                    pArrow = TranslateAndRotate(pos,rot,arrow);
                     plot(pArrow(1,:),pArrow(2,:),'Color',"R",'LineWidth',self.options.LineWidth);
-                    text(pArrow(1,4)+0.05,pArrow(2,4)+0.05,strcat(num2str(f),"[",self.fUnit,"]"),'FontSize',self.options.fontSize);
+                    if ar.invert; f = abs(f); end % change sign if arrow changes dir
+                    text(pArrow(1,4)+ar.txt_offset(1),pArrow(2,4)+ar.txt_offset(2),...
+                        strcat(num2str(f),"[",self.fUnit,"]"),'FontSize',self.options.fontSize);
                 end
             end
         end
@@ -364,11 +375,13 @@ M = [[la+lt*cos(pi-va),lt*sin(pi-va)]',...
     [lt*cos(3*pi/2+va),la+lt*sin(3*pi/2+va)]'];
 end
 
-function M = forceArrow(l,w)
+function M = forceArrow(l,w,i,t)
 % create a force arrow
 % l = length of arrow stem
 % w = thickness of arrow
-    %M = [[0;r],[l;r],[l;w],[l*2;0],[l;-w],[l;-r],[0;-r],[0;r]];
-    % somewhat nice looking arrow:
-    M = [[0;0],[-0.4;0.4],[-0.4;0.2],[-1;0.2],[-1;-0.2],[-0.4;-0.2],[-0.4;-0.4],[0;0]].*[l;w];
+% i = rot arrow 180 deg if i<0
+% t = arrow points towards 0,0 if set to 1, from 0,0 if set to 0
+    inv = pi * (i<0);
+    M = [cos(inv), -sin(inv);sin(inv), cos(inv)]*... % rotate by pi if i = 1
+        ([[0;0],[-0.4;0.4],[-0.4;0.2],[-1;0.2],[-1;-0.2],[-0.4;-0.2],[-0.4;-0.4],[0;0]]+[t;0]).*[abs(l);abs(w)];
 end

@@ -116,7 +116,7 @@ classdef link < matlab.mixin.SetGet
         function f = damper(self,pos) %TODO: add
             % Draw a spring
                 % pos : line points
-            f = SpringData(pos(:,1),pos(:,2),0.6,20,0.5);
+            f = DamperData(pos(:,1),pos(:,2),0.6,20,0.5);
         end
         function f = springDamper(self,pos)
             % Draw a spring-damper

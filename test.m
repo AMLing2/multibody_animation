@@ -23,13 +23,13 @@ l1 = a.linkPoints(turt.point('A'),...
              sup.point('B'),'spring-damper');
 l1.setOptions("L_end",1,"Ncoils",10,"width_cyl",0.7)
 
-turt.forceArrowPoint("A",pi/2,0:1:length(q_vec),"local",0.7,1);
+turt.forceArrowPoint("A",0,-5:2:length(q_vec),"local","towards",0.7,1,1,[0,0]);
 f = @(n) (text(-2,8,["frame: ";num2str(n)]));
-a.animate(t_vec,0.2,1,f)
+a.animate(t_vec,1,1,f)
 disp(a)
 
-sup.set_q([-1,-5,pi])
-a.drawFrame()
+% sup.set_q([-1,-5,pi])
+% a.drawFrame()
 
 %TODO list:
 % options need fixing
