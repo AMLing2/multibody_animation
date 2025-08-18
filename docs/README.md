@@ -7,7 +7,6 @@ clone with git:
 git clone https://github.com/AMLing2/multibody_animation.git
 ```
 Add to MATLAB path:
-how
 
 ## USING THE LIBRARY:
 An animation scene is created through the *animation* class which allows creating shapes and linking them to a position array from earlier simulation data or real-time data, points can be created on each shape which can be visually linked together by a simple line, springs, dampers, etc. Once the scene is created, an animation can be displayed from the position data of each shape, or the current frame can be drawn for real-time data after updating the postion of each shape.
