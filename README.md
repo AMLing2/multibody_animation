@@ -7,7 +7,7 @@ clone with git:
 git clone https://github.com/AMLing2/multibody_animation.git
 ```
 
-[Link to documentation](url) 
+[Link to documentation](https://amling2.github.io/multibody_animation/#/) 
 
 TODO:
 - force arrows on shapes (pos,dir,force,scalefac_width,scalefactor_length)
