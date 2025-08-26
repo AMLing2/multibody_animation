@@ -1,4 +1,4 @@
-# multibody_animation
+# multibody_animation, WIP
 
 ## USAGE:
 
@@ -8,8 +8,12 @@ git clone https://github.com/AMLing2/multibody_animation.git
 ```
 
 [Link to documentation](https://amling2.github.io/multibody_animation/#/) 
+This project is currently in development, API stability cannot be guaranteed.
 
 TODO:
+- update docs for arrows and func signature
+- add update on bodies for late option changes
+- make not overwrite other figures
 - force arrows on shapes (pos,dir,force,scalefac_width,scalefactor_length)
     - done for points
 - some way to do belts/ropes on moving shapes

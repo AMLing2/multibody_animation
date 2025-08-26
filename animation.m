@@ -4,7 +4,8 @@ classdef animation < matlab.mixin.SetGet
 
     properties (SetAccess = private)
         shapes % array of shape objects
-        options
+        options = struct('axis',[-8.0 2 -4.0 6.0],...
+                         'forceUnit',"kN");
         coordPos
         links % array of link objects
     end
@@ -16,8 +17,6 @@ classdef animation < matlab.mixin.SetGet
                 coordPos (1,2) double = [0.0,0.0]
             end
             obj.coordPos = coordPos;
-            %initialize options
-            obj.options.axis = [-8.0 2 -4.0 6.0];
         end
 
         function shapeObj = createSquare(self,q_link,size)
@@ -40,21 +39,17 @@ classdef animation < matlab.mixin.SetGet
             shapeObj = self.createCustom(q_link,points);
         end
 
-        function shapeObj = createCircle(self,q_link, r, varargin)
+        function shapeObj = createCircle(self,q_link, r, offset, corners)
             % Create a circle, returns a shape object 
                 % r : radius of circle
                 % offset : center offset
-            switch nargin
-                case 3
-                    corners = 25;
-                    offset = 0;
-                case 4
-                    corners = varargin{1};
-                    offset = 0;
-                case 5
-                    corners = varargin{1};
-                    offset = varargin{2};
-            end
+            arguments
+            self 
+            q_link 
+            r 
+            offset = [0;0];
+            corners = 25;
+        end
             t = linspace(0,2*pi-(2*pi/corners),corners);
             points = [r*cos(t);r*sin(t)];
             points = points + offset;
@@ -157,7 +152,7 @@ classdef animation < matlab.mixin.SetGet
 
         function shapeObj = createCustom(self,q_link,points)
             % Create a custom shape with specified line points
-            shapeObj = shape(q_link,points);
+            shapeObj = shape(q_link,points,self.options.forceUnit);
             set(self,'shapes', shapeObj);
         end
 
@@ -177,7 +172,8 @@ classdef animation < matlab.mixin.SetGet
             if ~isa(func,"function_handle") & ~isempty(func) % cant use [] in place of function_handle
                 error("Expected a function handle")
             end
-            figure
+            h = figure;
+            set(0,'CurrentFigure',h);
             axis equal
             hold on
             axis(self.options.axis)
@@ -209,7 +205,7 @@ classdef animation < matlab.mixin.SetGet
                 self.links(i).drawLink(pointPos);
             end
             if ~isempty(func)
-                func(n);
+                func(n,self);
             end
         end
 
@@ -219,11 +215,12 @@ classdef animation < matlab.mixin.SetGet
             % 'title', string : add text to the shape drawing % todo
             % 'frame', size : draw the shape's coordinate frame at the COM
             % 'lineStyle', style : change the style of the line % todo
+            % 'forceUnit', : set unit of force for text display
             arguments
                 self 
             end
             arguments (Repeating)
-                field string {mustBeMember(field,["axis"])}
+                field string {mustBeMember(field,["axis","forceUnit"])}
                 value
             end
             if length(field) ~= length(value)

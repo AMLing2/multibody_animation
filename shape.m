@@ -23,11 +23,12 @@ classdef shape < matlab.mixin.SetGet
     end
 
     methods
-        function obj = shape(q_vec,body) % constructor
+        function obj = shape(q_vec,body,fUnit) % constructor
             % Construct an instance of a shape class
             arguments
                 q_vec (:,3)
                 body 
+                fUnit string = "kN"
             end
             obj.q_vec = q_vec;
             % obj.body = body;
@@ -36,6 +37,7 @@ classdef shape < matlab.mixin.SetGet
             else
                 obj.body = polyshape(body(1,:),body(2,:));
             end
+            obj.fUnit = fUnit;
         end
 
         function createSlot(self,pos,phi,L,r)

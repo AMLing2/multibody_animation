@@ -129,6 +129,7 @@ classdef link < matlab.mixin.SetGet
     end
 end
 
+%% Link visualizations created by Morten Kjeld Ebbesen
 function f = SpringData(P1, P2, Width,Ncoil,L_end)
 % f = SpringData(P1, P2, Width,Ncoil)
 % P1    = [x;y] starting point
